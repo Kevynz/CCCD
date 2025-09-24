@@ -1,0 +1,41 @@
+const pool = require('../config/db');
+
+module.exports = async function(req, res, next) {
+    try {
+        const userId = req.user.id; // ID do usuário logado (do token)
+        const devotionalId = req.params.id; // ID do devocional a ser deletado
+
+        // 1. Verificar se o usuário é Administrador (Pastor/Desenvolvedor)
+        // Usamos uma consulta LEFT JOIN para ser eficiente
+        const roleCheck = await pool.query(
+            `SELECT C.nome_cargo, D.usuario_id
+             FROM "Usuarios" U 
+             LEFT JOIN "Cargos" C ON U.cargo_id = C.id
+             LEFT JOIN Devocionais D ON D.id = $1
+             WHERE U.id = $2`,
+            [devotionalId, userId]
+        );
+
+        if (roleCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Usuário ou Devocional não encontrado." });
+        }
+
+        const { nome_cargo, usuario_id } = roleCheck.rows[0];
+
+        // Regras de Exclusão:
+        const isAdmin = ['Pastor', 'Desenvolvedor'].includes(nome_cargo);
+        const isAuthor = userId === usuario_id;
+
+        if (isAdmin || isAuthor) {
+            // Se for Admin OU o próprio autor, permite a exclusão
+            next();
+        } else {
+            // Permissão insuficiente
+            return res.status(403).json({ error: "Você só pode deletar devocionais que você mesmo publicou." });
+        }
+
+    } catch (err) {
+        console.error('ERRO NO MIDDLEWARE DE PERMISSÃO DE EXCLUSÃO:', err);
+        res.status(500).json({ error: 'Erro de permissão no servidor.' });
+    }
+};
