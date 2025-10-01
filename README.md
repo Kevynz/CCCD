@@ -1,4 +1,4 @@
-Guia de Uso da Aplicação CCD (Comunidade de Cristo em Chamas Divinas)
+Guia de Uso da Aplicação CCCD (Comunidade de Crista Casa de Deus)
 Este documento descreve como iniciar e usar a aplicação de devocionais e gamificação. O projeto é dividido em duas partes principais: um frontend (interface do usuário, feita em React) e um backend (servidor e API, feito em Node.js com Express).
 
 🚀 Como Iniciar a Aplicação
